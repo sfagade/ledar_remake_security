@@ -80,14 +80,14 @@ public class AccountPasswordResource {
                     criteriaRequest.put("ipAddress", currentUser.getLastLoginIp());
                     criteriaRequest.put("createdBy", currentUser);
                     loggingService.saveTransactionInformationLog(criteriaRequest);
-                    basePayload = new ApiResponse(Boolean.TRUE, "Password change successful");
+                    basePayload = new ApiResponse(Boolean.TRUE, "Password change successful", null);
                     log.info("Password changed successfully");
                 } else {
-                    basePayload = new ApiResponse(Boolean.FALSE, "Invalid current password");
+                    basePayload = new ApiResponse(Boolean.FALSE, "Invalid current password", null);
                     log.info("Invalid current password specified");
                 }
             } else {
-                basePayload = new ApiResponse(Boolean.FALSE, "Invalid new password");
+                basePayload = new ApiResponse(Boolean.FALSE, "Invalid new password", null);
                 log.info("Password entries do not match");
             }
         }
@@ -143,14 +143,14 @@ public class AccountPasswordResource {
 
                 externalIntCom.sendSecurityServiceEmailMessage(emailMessage, contact.getPrimaryEmailAddress(), "Password Changed");
                 log.info("Sent new password via email: {}", new_password);
-                basePayload = new ApiResponse(Boolean.TRUE, "Password has been changed successfully and email sent to user");
+                basePayload = new ApiResponse(Boolean.TRUE, "Password has been changed successfully and email sent to user", null);
             } else {
                 log.info("Could not fund user with given ID: {}", criteriaRequest.get("loginId"));
-                basePayload = new ApiResponse(false, "Could not find user with given ID");
+                basePayload = new ApiResponse(false, "Could not find user with given ID", null);
             }
         } else {
             log.info("One or more missing required params in payload");
-            basePayload = new ApiResponse(false, "Invalid request param");
+            basePayload = new ApiResponse(false, "Invalid request param", null);
         }
         return ResponseEntity.ok(basePayload);
     }

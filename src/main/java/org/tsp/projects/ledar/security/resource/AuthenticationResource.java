@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.tsp.projects.ledar.security.auth.JwtTokenProvider;
 import org.tsp.projects.ledar.security.auth.UserPrincipal;
+import org.tsp.projects.ledar.security.builder.LoginInformationBuilder;
 import org.tsp.projects.ledar.security.enums.ApplicationActivitiesEnum;
 import org.tsp.projects.ledar.security.model.LoginInformation;
 import org.tsp.projects.ledar.security.model.UsersLastActivities;
@@ -60,7 +61,7 @@ public class AuthenticationResource {
         if (loginRequest.getLoginPortal().equals("MOBILE")) {
             //this should never happen
             if (loginRequest.getClient() == null || loginRequest.getLatitude() == null || loginRequest.getLongitude() == null) {
-                return ResponseEntity.ok(new ApiResponse(false, "One or more required login fields is missing"));
+                return ResponseEntity.ok(new ApiResponse(false, "One or more required login fields is missing", null));
             }
         }
         Authentication authentication = authenticationManager.authenticate(
@@ -85,7 +86,8 @@ public class AuthenticationResource {
 
             String jwt = tokenProvider.generateToken(authentication);
             JwtAuthenticationResponse holder = new JwtAuthenticationResponse(jwt);
-            ApiResponse apiResponse = new ApiResponse(Boolean.TRUE, holder.getAccessToken());
+            ApiResponse apiResponse = new ApiResponse(Boolean.TRUE, holder.getAccessToken(),
+                    LoginInformationBuilder.constructLoginInformationLoad(loginInfo, false));
 
             String message = loginInfo.getLoginPerson().getFullName() + " logged in successfully from " + loginRequest.getLoginPortal() + ": Client details are" + loginRequest.getClient()
                     + ", at latitude: " + loginRequest.getLatitude() + " and longitude: " + loginRequest.getLongitude() + ".";
@@ -98,7 +100,7 @@ public class AuthenticationResource {
                     loginRequest.getLatitude());
             return ResponseEntity.ok(apiResponse);
         } else {
-            return ResponseEntity.ok(new ApiResponse(false, "Account disabled"));
+            return ResponseEntity.ok(new ApiResponse(false, "Account disabled", null));
         }
 
     }

@@ -13,5 +13,6 @@ public class ApiResponse extends PayloadAbstractBase {
 
     private Boolean success;
     private String message;
+    private LoginInformationResponse loginInformationResponse;
 
 }

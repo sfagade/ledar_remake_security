@@ -60,7 +60,7 @@ public class RegistrationResource {
 
         if (!isValidPayloadReferences(personRequestPayload)) {
             log.info("Payload reference data validation failed: {}", errorMessage);
-            return ResponseEntity.badRequest().body(new ApiResponse(false, errorMessage));
+            return ResponseEntity.badRequest().body(new ApiResponse(false, errorMessage, null));
         }
         log.info("Completed all reference data validation");
 

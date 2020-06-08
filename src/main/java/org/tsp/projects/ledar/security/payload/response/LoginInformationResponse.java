@@ -32,16 +32,19 @@ public class LoginInformationResponse extends PayloadAbstractBase {
     private String longitude;
     private String latitude;
     private Date dayKeyExpiry;
-    private List<UserRole> userRoleList;
+    private List<AuthRolesResponse> userRoleList;
+    private PersonResponse personResponse;
 
-    public LoginInformationResponse(Long login_id, String username, boolean active, Boolean loginStatus,
-                                    Date lastLoginDate, LocalDateTime created, LocalDateTime modified) {
+    public LoginInformationResponse(Long id, String username, boolean active, PersonResponse personPayload,
+                                    List<AuthRolesResponse> userRoles, Boolean resetPassword, LocalDateTime created,
+                                    LocalDateTime modified) {
+        this.baseId = id;
         this.username = username;
         this.active = active;
-        this.loginStatus = loginStatus;
-        this.lastLoginDate = lastLoginDate;
-        this.baseId = login_id;
         this.created = created;
         this.modified = modified;
+        this.userRoleList = userRoles;
+        this.personResponse = personPayload;
+        this.passwordResetRequired = resetPassword;
     }
 }

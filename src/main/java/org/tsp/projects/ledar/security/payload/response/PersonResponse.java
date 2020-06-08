@@ -20,30 +20,27 @@ public class PersonResponse extends PayloadAbstractBase {
     private String middleName;
     private String motherMaidenName;
     private Date dateOfBirth;
-    private GenderTypeResponse genderType;
+    private String gender;
     private Date weddingAnniversary;
     private Boolean updateRequired;
     private Boolean isDisabled;
     private Boolean isDeleted;
     private LoginInformationResponse loginInformation;
+    private ContactInformationResponse contactInformationResponse;
     private String fullName;
     private String completeName;
+    private String title;
 
-    public PersonResponse(Long person_id, String firstName, String lastName, String middleName, Date dateOfBirth, GenderTypeResponse genderResponse,
-                          Boolean updateRequired, Boolean isDisabled, Boolean isDeleted, LoginInformationResponse loginInformation,
-                          String fullName, String completeName, LocalDateTime created, LocalDateTime modified) {
+    public PersonResponse(Long id, String firstName, String lastName, String middleName, String fullName, Date dateOfBirth,
+                            String gender, String personTitle, LocalDateTime created, LocalDateTime modified) {
+        this.baseId = id;
         this.firstName = firstName;
-        this.lastName = lastName;
+        this.lastName= lastName;
         this.middleName = middleName;
-        this.dateOfBirth = dateOfBirth;
-        this.genderType = genderResponse;
-        this.updateRequired = updateRequired;
-        this.isDisabled = isDisabled;
-        this.isDeleted = isDeleted;
-        this.loginInformation = loginInformation;
         this.fullName = fullName;
-        this.completeName = completeName;
-        this.baseId = person_id;
+        this.dateOfBirth = dateOfBirth;
+        this.gender= gender;
+        this.title = personTitle;
         this.created = created;
         this.modified = modified;
     }
