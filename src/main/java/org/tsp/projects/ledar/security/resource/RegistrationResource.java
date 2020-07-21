@@ -4,49 +4,49 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.tsp.projects.ledar.security.model.*;
-import org.tsp.projects.ledar.security.payload.request.AddressesPayload;
 import org.tsp.projects.ledar.security.payload.request.ContactInformationPayload;
-import org.tsp.projects.ledar.security.payload.request.LoginInformationPayload;
 import org.tsp.projects.ledar.security.payload.request.PersonPayload;
 import org.tsp.projects.ledar.security.payload.response.ApiResponse;
 import org.tsp.projects.ledar.security.repository.*;
-import org.tsp.projects.ledar.security.util.ApplicationUtility;
-
+import org.tsp.projects.ledar.security.service.AddressesService;
+import org.tsp.projects.ledar.security.service.LoginInformationService;
 
 import javax.validation.Valid;
 import java.util.Optional;
+import org.tsp.projects.ledar.security.service.ContactInformationService;
+import org.tsp.projects.ledar.security.service.PersonService;
+import org.tsp.projects.ledar.security.service.UserRoleService;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/registrationResource")
 public class RegistrationResource {
 
-    private final PersonRepository personRepository;
-    private final AddressesRepository addressesRepository;
-    private final LoginInformationRepository loginInformationRepository;
-    private final ContactInformationRepository contactInformationRepository;
-    private final UserRoleRepository userRoleRepository;
     private final AuthenticationRolesRepository authenticationRolesRepository;
-    private final PasswordEncoder passwordEncoder;
+
+    private final LoginInformationService loginInformationService;
+    private final AddressesService addressesService;
+    private final PersonService personService;
+    private final ContactInformationService contactInformationService;
+    private final UserRoleService userRoleService;
 
     private AuthenticationRole authenticationRole = null;
     private String errorMessage;
 
     @Autowired
-    public RegistrationResource(PersonRepository personRepos, AddressesRepository addressesRepos, AuthenticationRolesRepository authenticationRolesRepos,
-                                LoginInformationRepository loginInformationRepos, ContactInformationRepository contactInformationRepos,
-                                UserRoleRepository userRoleRepos, PasswordEncoder passwordEncoder) {
-        this.personRepository = personRepos;
-        this.addressesRepository = addressesRepos;
+    public RegistrationResource(AuthenticationRolesRepository authenticationRolesRepos,
+            UserRoleService userRoleService, ContactInformationService contactInformationService,
+            LoginInformationService loginInformationService, 
+            AddressesService addressesService, PersonService personService) {
         this.authenticationRolesRepository = authenticationRolesRepos;
-        this.loginInformationRepository = loginInformationRepos;
-        this.contactInformationRepository = contactInformationRepos;
-        this.userRoleRepository = userRoleRepos;
-        this.passwordEncoder = passwordEncoder;
+        this.loginInformationService = loginInformationService;
+        this.addressesService = addressesService;
+        this.personService = personService;
+        this.contactInformationService = contactInformationService;
+        this.userRoleService = userRoleService;
     }
 
     @Transactional
@@ -54,8 +54,6 @@ public class RegistrationResource {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<?> createNewApplicationUser(@Valid @RequestBody PersonPayload personRequestPayload) {
         log.info("Registering new app user: {}", personRequestPayload);
-        LoginInformationPayload loginPayload = personRequestPayload.getLoginInformation();
-        AddressesPayload addressPayload = personRequestPayload.getUserAddress();
         ContactInformationPayload contactInfoPayload = personRequestPayload.getContactInformation();
 
         if (!isValidPayloadReferences(personRequestPayload)) {
@@ -64,23 +62,13 @@ public class RegistrationResource {
         }
         log.info("Completed all reference data validation");
 
-        LoginInformation loginInformation = new LoginInformation(null, loginPayload.getUsername(), passwordEncoder.encode(loginPayload.getPassword()), false,
-                ApplicationUtility.createRandomCode(8, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"), null, null);
-        Addresses address = new Addresses(null, addressPayload.getStreetName(), addressPayload.getHouseNo(), addressPayload.getCity(),
-                addressPayload.getLocalGovtArea(), loginInformation, addressPayload.getAddressState(), addressPayload.getAddressCountry(), null, null);
+        LoginInformation loginInformation = loginInformationService.saveNewLoginInformation(personRequestPayload.getLoginInformation());
+        Addresses address = addressesService.saveNewAddresses(personRequestPayload.getUserAddress(), loginInformation);
 
-        Person person = new Person(null, personRequestPayload.getFirstName().toUpperCase(), personRequestPayload.getLastName().toUpperCase(),
-                personRequestPayload.getMiddleName().toUpperCase(), personRequestPayload.getDateOfBirth(), personRequestPayload.getGender(),
-                address, loginInformation, personRequestPayload.getPersonTitle(), personRequestPayload.getLocalGovtOfOrigin(), personRequestPayload.getMaritalStatus(),
-                personRequestPayload.getOccupation(), personRequestPayload.getReligion(), loginInformation, null, null);
-        ContactInformation contactInformation = new ContactInformation(null, contactInfoPayload.getContactPhoneNumber(), null,
-                contactInfoPayload.getPrimaryEmailAddress(), null, address, loginInformation, person, null, null);
+        Person person = personService.saveNewPerson(personRequestPayload, address, loginInformation);
+        contactInformationService.saveNewContactInformation(contactInfoPayload, address, loginInformation, person);
 
-        loginInformationRepository.save(loginInformation);
-        addressesRepository.save(address);
-        personRepository.save(person);
-        contactInformationRepository.save(contactInformation);
-        userRoleRepository.save(new UserRole(null, loginInformation, authenticationRole, null, null, null));
+        this.userRoleService.saveNewUserRole(authenticationRole, loginInformation);
 
         return ResponseEntity.ok(person);
     }

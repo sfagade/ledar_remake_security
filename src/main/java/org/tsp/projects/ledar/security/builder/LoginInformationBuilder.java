@@ -14,9 +14,9 @@ public class LoginInformationBuilder {
     public static LoginInformationResponse constructLoginInformationLoad(LoginInformation loginInfo, Boolean isDetail) {
 
         LoginInformationResponse loginInformationLoad = null;
-        PersonResponse personPayload = null;
 
         if (loginInfo != null) {
+            PersonResponse personPayload = null;
             if (!isDetail) {
                 Person person = loginInfo.getLoginPerson();
                 if (person != null && person.getFullName() != null) {
